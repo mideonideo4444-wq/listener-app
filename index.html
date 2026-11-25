@@ -1,10 +1,14 @@
-<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><body dir=rtl style="font-family:sans-serif;max-width:480px;margin:auto;padding:12px">
-<h3>فضفض… في حد سامعك</h3><p style="font-size:13px;color:#555">مجهول تمامًا: من غير اسم ولا رقم. المستمع مش دكتور ومش بيشخّص ولا بيدي علاج. لو حالتك خطيرة كلّم متخصص.</p>
-<div id=log style="min-height:200px;border:1px solid #ccc;padding:8px;overflow:auto"></div>
-<input id=t style="width:75%"><button onclick=go()>ابعت</button>
+<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>سامعك</title><link rel=stylesheet href=/style.css></head><body><div class=app>
+<header><svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="30" fill="#f6d9c4"/><path d="M14 30c0-10 8-17 18-17s18 7 18 17c0 8-5 12-9 15-3 2-4 4-4 7 0 3-3 5-6 4-5-1-8-6-8-12" fill="none" stroke="#3f7c68" stroke-width="4" stroke-linecap="round"/><path d="M33 34c-4-3-6-5-6-8 0-2 2-4 4-4 1 0 2 .6 2 1.5.1-.9 1-1.5 2-1.5 2 0 4 2 4 4 0 3-2 5-6 8z" fill="#e58a7b"/></svg><h1>سامعك</h1><p class=tag>فضفض… في حد سامعك</p></header>
+<div class=note>من غير اسم ولا رقم. المستمع بيسمعك بس، مش دكتور ومش بيشخّص ولا بيدي علاج. لو حالتك خطيرة كلّم متخصص أو اتصل بالإسعاف 123.</div>
+<div id=log></div>
+<div class=row><input class=t id=t placeholder="اكتب اللي جواك…" autocomplete=off><button class=s onclick=go()>ابعت</button></div>
+<footer>سامعك · بنسمعك من غير أحكام</footer></div>
 <script>
-let id=localStorage.sid;const log=document.getElementById('log');
+let id=localStorage.sid;const log=document.getElementById('log'),esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 (async()=>{if(!id){id=(await (await fetch('/api/new')).json()).id;localStorage.sid=id}setInterval(poll,2000);poll()})();
-async function poll(){const m=(await (await fetch('/api/poll?id='+id)).json()).msgs||[];log.innerHTML=m.map(x=>`<p style="color:${x.from=='system'?'red':x.from=='listener'?'green':'#000'}">${x.from=='user'?'أنت':x.from=='listener'?'المستمع':'تنبيه'}: ${x.t.replace(/</g,'&lt;')}</p>`).join('')}
-async function go(){const t=document.getElementById('t');if(!t.value)return;await fetch('/api/say',{method:'POST',body:JSON.stringify({id,text:t.value})});t.value='';poll()}
-</script>
+async function poll(){const m=(await (await fetch('/api/poll?id='+id)).json()).msgs||[];
+log.innerHTML=m.length?m.map(x=>x.from=='system'?'<div class="b sys">'+esc(x.t)+'</div>':'<div class="b '+(x.from=='user'?'me':'them')+'">'+(x.from=='listener'?'<span class=who>المستمع</span>':'')+esc(x.t)+'</div>').join(''):'<div class=empty>اكتب أول رسالة…<br>هنا حد هيسمعك بهدوء</div>';log.scrollTop=log.scrollHeight}
+document.getElementById('t').addEventListener('keydown',e=>{if(e.key=='Enter')go()});
+async function go(){const t=document.getElementById('t');if(!t.value.trim())return;await fetch('/api/say',{method:'POST',body:JSON.stringify({id,text:t.value})});t.value='';poll()}
+</script></body></html>
