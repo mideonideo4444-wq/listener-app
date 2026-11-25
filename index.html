@@ -1,0 +1,10 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><body dir=rtl style="font-family:sans-serif;max-width:480px;margin:auto;padding:12px">
+<h3>فضفض… في حد سامعك</h3><p style="font-size:13px;color:#555">مجهول تمامًا: من غير اسم ولا رقم. المستمع مش دكتور ومش بيشخّص ولا بيدي علاج. لو حالتك خطيرة كلّم متخصص.</p>
+<div id=log style="min-height:200px;border:1px solid #ccc;padding:8px;overflow:auto"></div>
+<input id=t style="width:75%"><button onclick=go()>ابعت</button>
+<script>
+let id=localStorage.sid;const log=document.getElementById('log');
+(async()=>{if(!id){id=(await (await fetch('/api/new')).json()).id;localStorage.sid=id}setInterval(poll,2000);poll()})();
+async function poll(){const m=(await (await fetch('/api/poll?id='+id)).json()).msgs||[];log.innerHTML=m.map(x=>`<p style="color:${x.from=='system'?'red':x.from=='listener'?'green':'#000'}">${x.from=='user'?'أنت':x.from=='listener'?'المستمع':'تنبيه'}: ${x.t.replace(/</g,'&lt;')}</p>`).join('')}
+async function go(){const t=document.getElementById('t');if(!t.value)return;await fetch('/api/say',{method:'POST',body:JSON.stringify({id,text:t.value})});t.value='';poll()}
+</script>
