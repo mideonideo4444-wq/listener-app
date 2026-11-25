@@ -1,0 +1,9 @@
+<!doctype html><meta charset=utf-8><body dir=rtl style="font-family:sans-serif;max-width:600px;margin:auto">
+<h3>صندوق المستمع</h3><div id=inbox></div><hr><div id=th></div><input id=t><button onclick=rep()>رد</button>
+<script>
+const key=new URLSearchParams(location.search).get('key');let cur;
+async function load(){const l=await (await fetch('/api/inbox?key='+key)).json();inbox.innerHTML=l.map(s=>`<div><a href=# onclick="open_('${s.id}')">${s.crisis?'🔴 ':''}${s.id.slice(0,6)}</a> (${s.n}) ${s.last.slice(0,40).replace(/</g,'&lt;')}</div>`).join('');if(cur)open_(cur)}
+async function open_(id){cur=id;const m=await (await fetch('/api/thread?key='+key+'&id='+id)).json();th.innerHTML=m.map(x=>`<p>${x.from}: ${x.t.replace(/</g,'&lt;')}</p>`).join('')}
+async function rep(){await fetch('/api/reply?key='+key,{method:'POST',body:JSON.stringify({id:cur,text:t.value})});t.value='';open_(cur)}
+setInterval(load,3000);load();
+</script>
