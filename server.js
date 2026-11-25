@@ -10,6 +10,9 @@ http.createServer(async(q,r)=>{
  if(q.method==='GET'&&(u.pathname==='/'||u.pathname==='/listener')){
   return r.writeHead(200,{'content-type':'text/html; charset=utf-8'}),r.end(fs.readFileSync(__dirname+'/'+(u.pathname==='/'?'index':'listener')+'.html'));}
  if(q.method==='GET'&&u.pathname==='/style.css'){return r.writeHead(200,{'content-type':'text/css; charset=utf-8'}),r.end(fs.readFileSync(__dirname+'/style.css'));}
+ const ST={'/manifest.webmanifest':['application/manifest+json; charset=utf-8','manifest.webmanifest'],'/sw.js':['text/javascript; charset=utf-8','sw.js']};
+ if(q.method==='GET'&&ST[u.pathname]){return r.writeHead(200,{'content-type':ST[u.pathname][0],'cache-control':'no-cache'}),r.end(fs.readFileSync(__dirname+'/'+ST[u.pathname][1]));}
+ if(q.method==='GET'&&(u.pathname==='/icon-192.png'||u.pathname==='/icon-512.png')){const k=u.pathname.slice(6,9);return r.writeHead(200,{'content-type':'image/png','cache-control':'public, max-age=86400'}),r.end(Buffer.from(JSON.parse(fs.readFileSync(__dirname+'/icons.json'))[k],'base64'));}
  if(u.pathname==='/api/new'){const id=crypto.randomBytes(8).toString('hex');sessions[id]={msgs:[],created:Date.now(),paid:false,crisis:false};return send(r,200,{id});}
  if(u.pathname==='/api/say'){const b=await body(q),s=sessions[b.id];if(!s)return send(r,404,{});
   const t=String(b.text||'').slice(0,1000);s.msgs.push({from:'user',t,ts:Date.now()});
