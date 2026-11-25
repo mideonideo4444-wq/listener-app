@@ -9,6 +9,7 @@ http.createServer(async(q,r)=>{
  const u=new URL(q.url,'http://x');
  if(q.method==='GET'&&(u.pathname==='/'||u.pathname==='/listener')){
   return r.writeHead(200,{'content-type':'text/html; charset=utf-8'}),r.end(fs.readFileSync(__dirname+'/'+(u.pathname==='/'?'index':'listener')+'.html'));}
+ if(q.method==='GET'&&u.pathname==='/style.css'){return r.writeHead(200,{'content-type':'text/css; charset=utf-8'}),r.end(fs.readFileSync(__dirname+'/style.css'));}
  if(u.pathname==='/api/new'){const id=crypto.randomBytes(8).toString('hex');sessions[id]={msgs:[],created:Date.now(),paid:false,crisis:false};return send(r,200,{id});}
  if(u.pathname==='/api/say'){const b=await body(q),s=sessions[b.id];if(!s)return send(r,404,{});
   const t=String(b.text||'').slice(0,1000);s.msgs.push({from:'user',t,ts:Date.now()});
