@@ -1,9 +1,14 @@
-<!doctype html><meta charset=utf-8><body dir=rtl style="font-family:sans-serif;max-width:600px;margin:auto">
-<h3>صندوق المستمع</h3><div id=inbox></div><hr><div id=th></div><input id=t><button onclick=rep()>رد</button>
+<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>سامعك - المستمع</title><link rel=stylesheet href=/style.css></head><body><div class=app>
+<header><svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="30" fill="#f6d9c4"/><path d="M14 30c0-10 8-17 18-17s18 7 18 17c0 8-5 12-9 15-3 2-4 4-4 7 0 3-3 5-6 4-5-1-8-6-8-12" fill="none" stroke="#3f7c68" stroke-width="4" stroke-linecap="round"/><path d="M33 34c-4-3-6-5-6-8 0-2 2-4 4-4 1 0 2 .6 2 1.5.1-.9 1-1.5 2-1.5 2 0 4 2 4 4 0 3-2 5-6 8z" fill="#e58a7b"/></svg><h1>سامعك</h1><p class=tag>صندوق المستمع</p></header>
+<div class=list id=inbox></div>
+<div id=log style="min-height:200px"><div class=empty>اختار محادثة من فوق</div></div>
+<div class=row><input class=t id=t placeholder="اكتب ردك…" autocomplete=off><button class=s onclick=rep()>رد</button></div>
+<footer><span class=dot style="margin:0 0 0 6px"></span> = حالة محتاجة تحويل لمتخصص</footer></div>
 <script>
-const key=new URLSearchParams(location.search).get('key');let cur;
-async function load(){const l=await (await fetch('/api/inbox?key='+key)).json();inbox.innerHTML=l.map(s=>`<div><a href=# onclick="open_('${s.id}')">${s.crisis?'🔴 ':''}${s.id.slice(0,6)}</a> (${s.n}) ${s.last.slice(0,40).replace(/</g,'&lt;')}</div>`).join('');if(cur)open_(cur)}
-async function open_(id){cur=id;const m=await (await fetch('/api/thread?key='+key+'&id='+id)).json();th.innerHTML=m.map(x=>`<p>${x.from}: ${x.t.replace(/</g,'&lt;')}</p>`).join('')}
-async function rep(){await fetch('/api/reply?key='+key,{method:'POST',body:JSON.stringify({id:cur,text:t.value})});t.value='';open_(cur)}
+const key=new URLSearchParams(location.search).get('key');let cur;const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+async function load(){const l=await (await fetch('/api/inbox?key='+key)).json();inbox.innerHTML=Array.isArray(l)?l.map(s=>'<a href=# onclick="open_(\''+s.id+'\');return false">'+(s.crisis?'<span class=dot></span>':'')+'محادثة '+s.id.slice(0,6)+' ('+s.n+')</a>').join('')||'<div class=empty>مفيش محادثات لسه</div>':'';if(cur)open_(cur)}
+async function open_(id){cur=id;const m=await (await fetch('/api/thread?key='+key+'&id='+id)).json();log.innerHTML=m.map(x=>x.from=='system'?'<div class="b sys">رسالة تلقائية: '+esc(x.t)+'</div>':'<div class="b '+(x.from=='listener'?'me':'them')+'">'+esc(x.t)+'</div>').join('');log.scrollTop=log.scrollHeight}
+async function rep(){if(!cur||!t.value.trim())return;await fetch('/api/reply?key='+key,{method:'POST',body:JSON.stringify({id:cur,text:t.value})});t.value='';open_(cur)}
+t.addEventListener('keydown',e=>{if(e.key=='Enter')rep()});
 setInterval(load,3000);load();
-</script>
+</script></body></html>
